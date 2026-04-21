@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './config/env.js';
+import floorPlanRoutes from './routes/floorPlan.routes.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 export function createApp() {
 	const app = express();
@@ -15,6 +17,10 @@ export function createApp() {
 	app.get('/health', (_req, res) => {
 		res.json({ ok: true, service: 'sketchrise-server', env: env.NODE_ENV });
 	});
+
+	app.use('/api/floor-plans', floorPlanRoutes);
+
+	app.use(errorHandler);
 
 	return app;
 }
