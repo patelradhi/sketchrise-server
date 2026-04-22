@@ -8,7 +8,8 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p .",
     "start": "node dist/server.js",
-    "typecheck": "tsc -p . --noEmit"
+    "typecheck": "tsc -p . --noEmit",
+    "kill-port": "npx kill-port 5000"
   },
   "dependencies": {
     "@clerk/backend": "^1.21.0",
