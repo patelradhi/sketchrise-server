@@ -14,6 +14,10 @@ const schema = z.object({
 
 	GEMINI_API_KEY: z.string().min(1),
 	GEMINI_MODEL: z.string().default('gemini-3.1-flash-image-preview'),
+	MOCK_GEMINI: z
+		.string()
+		.optional()
+		.transform((v) => v === 'true'),
 
 	CLERK_SECRET_KEY: z.string().min(1),
 	CLERK_PUBLISHABLE_KEY: z.string().min(1),

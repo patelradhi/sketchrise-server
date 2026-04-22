@@ -12,7 +12,7 @@ export async function generate3DFromImage(
 	mimeType: string,
 ): Promise<GeminiGenerationResult> {
 	const result = await ai.models.generateContent({
-		model: 'gemini-3.1-flash-image-preview',
+		model: 'gemini-2.5-flash-image-preview',
 		contents: [
 			{
 				role: 'user',
