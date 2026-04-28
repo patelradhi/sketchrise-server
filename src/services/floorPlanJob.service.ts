@@ -1,7 +1,7 @@
 import { FloorPlanJobModel } from '../models/FloorPlanJob.js';
 import { fetchImageAsBase64 } from '../utils/fetchImageAsBase64.js';
 import { generate3DFromImage } from './gemini.service.js';
-import { uploadBufferToCloudinary } from './cloudinary.service.js';
+import { uploadImage } from './cloudinary.service.js';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
 
@@ -52,7 +52,12 @@ export async function runJob(jobId: string): Promise<void> {
 		}
 
 		logger.info({ jobId }, '[job] uploading 3D to Cloudinary');
-		const uploaded = await uploadBufferToCloudinary(result.imageBuffer, 'sketchrise/3d');
+		const uploaded = await uploadImage(
+			result.imageBuffer.toString('base64'),
+			result.imageMime,
+			'3d',
+			job.userId,
+		);
 		logger.info({ jobId, url: uploaded.secure_url }, '[job] 3D uploaded');
 
 		job.generated3dUrl = uploaded.secure_url;
