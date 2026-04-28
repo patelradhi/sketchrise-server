@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { createJob, getJob, listMyJobs } from '../controllers/floorPlan.controller.js';
+import {
+	createJob,
+	getJob,
+	listMyJobs,
+	renameJob,
+	deleteJob,
+} from '../controllers/floorPlan.controller.js';
 
 const router = Router();
 
@@ -18,5 +24,7 @@ router.use(requireAuth);
 router.post('/', createLimiter, createJob);
 router.get('/me', listMyJobs);
 router.get('/:id', getJob);
+router.patch('/:id', renameJob);
+router.delete('/:id', deleteJob);
 
 export default router;

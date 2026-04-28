@@ -68,6 +68,46 @@ export const listMyJobs: RequestHandler = async (req, res, next) => {
 	}
 };
 
+const updateBody = z.object({
+	title: z.string().min(1).max(120),
+});
+
+export const renameJob: RequestHandler = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		if (!mongoose.isValidObjectId(id)) throw new HttpError(400, 'bad_request', 'invalid id');
+
+		const { title } = updateBody.parse(req.body);
+
+		const job = await FloorPlanJobModel.findById(id);
+		if (!job) throw new HttpError(404, 'not_found', 'job not found');
+		if (job.userId !== req.userId) throw new HttpError(403, 'forbidden', 'not your job');
+
+		job.title = title;
+		await job.save();
+		res.json(serializeJob(job));
+	} catch (err) {
+		if (err instanceof z.ZodError) return next(new HttpError(400, 'bad_request', err.issues[0]?.message ?? 'invalid body'));
+		next(err);
+	}
+};
+
+export const deleteJob: RequestHandler = async (req, res, next) => {
+	try {
+		const { id } = req.params;
+		if (!mongoose.isValidObjectId(id)) throw new HttpError(400, 'bad_request', 'invalid id');
+
+		const job = await FloorPlanJobModel.findById(id);
+		if (!job) throw new HttpError(404, 'not_found', 'job not found');
+		if (job.userId !== req.userId) throw new HttpError(403, 'forbidden', 'not your job');
+
+		await job.deleteOne();
+		res.json({ ok: true });
+	} catch (err) {
+		next(err);
+	}
+};
+
 function serializeJob(j: InstanceType<typeof FloorPlanJobModel>) {
 	return {
 		id: j._id.toString(),
