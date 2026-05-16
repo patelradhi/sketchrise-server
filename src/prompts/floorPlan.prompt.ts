@@ -1,6 +1,4 @@
-export const FLOOR_PLAN_PROMPT = `TASK: Convert the input 2D floor plan into a photorealistic, top-down 3D architectural render.
-
-Return a structured JSON object describing every room, wall, door, window, and furniture item detected.
+export const FLOOR_PLAN_PROMPT = `TASK: Convert the input 2D floor plan into a photorealistic, top-down 3D architectural render, AND return a small JSON summary with room counts and total area.
 
 STRICT REQUIREMENTS (do not violate):
 1) REMOVE ALL TEXT: Do not render letters, numbers, labels, dimensions, or annotations.
@@ -30,63 +28,33 @@ TEXTURES & MATERIALS:
 - White or off-white painted walls (#F5F5F0)
 - Matte ceiling finish
 
-COORDINATE SYSTEM:
-- All positions in meters from the building origin (0, 0, 0)
-- x = horizontal axis (left to right)
-- z = depth axis (front to back)
-- y = height (0 = floor level)
+============================================================
+JSON SUMMARY — MANDATORY, NEVER OMIT EITHER FIELD
+============================================================
 
-OUTPUT FORMAT: Return ONLY valid JSON. No markdown, no backticks, no explanation outside JSON.
+Alongside the rendered image, return a small JSON object with EXACTLY these two fields:
 
 {
   "rooms": [
-    {
-      "id": "room_1",
-      "type": "bedroom",
-      "label": "Master Bedroom",
-      "position": { "x": 0, "y": 0, "z": 0 },
-      "dimensions": { "width": 4.2, "height": 3.0, "depth": 3.8 },
-      "floor_material": "hardwood",
-      "wall_color": "#F5F5F0",
-      "furniture": [
-        {
-          "type": "bed",
-          "position": { "x": 1.0, "y": 0, "z": 1.5 },
-          "rotation": 0,
-          "dimensions": { "width": 1.6, "depth": 2.0 }
-        }
-      ]
-    }
+    { "type": "bedroom" },
+    { "type": "bathroom" },
+    { "type": "kitchen" }
   ],
-  "walls": [
-    {
-      "id": "wall_1",
-      "start": { "x": 0, "z": 0 },
-      "end": { "x": 4.2, "z": 0 },
-      "height": 2.8,
-      "thickness": 0.15
-    }
-  ],
-  "doors": [
-    {
-      "id": "door_1",
-      "wall_id": "wall_1",
-      "position": { "x": 1.5, "z": 0 },
-      "width": 0.9,
-      "swing": "left"
-    }
-  ],
-  "windows": [
-    {
-      "id": "window_1",
-      "wall_id": "wall_1",
-      "position": { "x": 2.8, "z": 0 },
-      "width": 1.2,
-      "height": 1.0,
-      "sill_height": 0.9
-    }
-  ],
-  "total_area_sqm": 85.4,
-  "building_type": "residential",
-  "estimated_scale": "1:50"
-}`;
+  "total_area_sqm": 85.4
+}
+
+RULES FOR "rooms":
+- One entry per distinct room visible in the plan.
+- "type" must be one of: "bedroom", "bathroom", "kitchen", "living_room", "dining_room", "balcony", "study", "hallway", "other".
+- Do not include extra keys (no id, label, dimensions, furniture).
+
+RULES FOR "total_area_sqm":
+- Always return a positive number, never null, never "unknown".
+- If the plan has labeled dimensions (e.g., "14'-0\\" x 15'-0\\"" or "Carpet area = 450 sq ft"), READ them and compute the total.
+  - Convert feet to meters (1 ft = 0.3048 m, 1 sq ft = 0.0929 sqm).
+- If no dimensions are labeled, ESTIMATE using furniture as a scale reference:
+  - bed = 1.6 × 2.0m, sofa = 2.2 × 0.9m, dining table = 1.5 × 0.8m, bathtub = 1.7 × 0.7m
+  - Measure rooms in pixels relative to these known-size objects, then sum.
+- When in doubt, give your best estimate — never omit this field.
+
+OUTPUT FORMAT: Return ONLY valid JSON for the text part (no markdown, no backticks, no explanation outside JSON), plus the rendered image.`;

@@ -14,6 +14,7 @@ const createBody = z.object({
 });
 
 export const createJob: RequestHandler = async (req, res, next) => {
+	console.log(`[ctrl:createJob] hit  userId=${req.userId}  body.title=${req.body?.title ?? '(none)'}`);
 	try {
 		const body = createBody.parse(req.body);
 		if (!body.source2dUrl.startsWith(env.CLOUDINARY_BASE_URL)) {
@@ -30,12 +31,15 @@ export const createJob: RequestHandler = async (req, res, next) => {
 			source2dPublicId: body.source2dPublicId,
 		});
 
+		console.log(`[ctrl:createJob] DB row created  jobId=${job._id.toString()}  status=${job.status}`);
 		res.status(202).json({ jobId: job._id.toString(), status: job.status });
 
+		console.log(`[ctrl:createJob] firing runJob async  jobId=${job._id.toString()}`);
 		runJob(job._id.toString()).catch((err) =>
 			logger.error({ err, jobId: job._id.toString() }, '[job] unhandled'),
 		);
 	} catch (err) {
+		console.error('[ctrl:createJob] failed', err);
 		if (err instanceof z.ZodError) return next(new HttpError(400, 'bad_request', err.issues[0]?.message ?? 'invalid body'));
 		next(err);
 	}
@@ -50,6 +54,7 @@ export const getJob: RequestHandler = async (req, res, next) => {
 		if (!job) throw new HttpError(404, 'not_found', 'job not found');
 		if (job.userId !== req.userId) throw new HttpError(403, 'forbidden', 'not your job');
 
+		console.log(`[ctrl:getJob] jobId=${id}  status=${job.status}`);
 		res.json(serializeJob(job));
 	} catch (err) {
 		next(err);
